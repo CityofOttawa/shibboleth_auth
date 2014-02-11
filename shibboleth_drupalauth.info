@@ -1,9 +1,0 @@
-name = Shibboleth Drupal Authentication
-description = Use Drupal as a Shibboleth authentication source
-core = 7.x
-package = Shibboleth
-configure = admin/config/people/shibboleth_drupalauth
-
-; Dependencies
-dependencies[] = services
-
