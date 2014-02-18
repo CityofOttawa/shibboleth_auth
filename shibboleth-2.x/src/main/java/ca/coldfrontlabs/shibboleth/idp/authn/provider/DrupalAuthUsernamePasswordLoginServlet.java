@@ -30,6 +30,7 @@ import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
 import javax.servlet.ServletException;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,7 +45,11 @@ import org.slf4j.LoggerFactory;
 import edu.internet2.middleware.shibboleth.idp.authn.AuthenticationEngine;
 import edu.internet2.middleware.shibboleth.idp.authn.LoginHandler;
 import edu.internet2.middleware.shibboleth.idp.session.Session;
+import edu.internet2.middleware.shibboleth.idp.util.HttpServletHelper;
+import edu.internet2.middleware.shibboleth.idp.authn.LoginContext;
+import org.opensaml.saml2.metadata.EntityDescriptor;
 
+import ca.coldfrontlabs.shibboleth.idp.authn.AuthValidatorResult;
 import ca.coldfrontlabs.shibboleth.idp.authn.DrupalAuthValidator;
 
 /**
@@ -99,22 +104,52 @@ public class DrupalAuthUsernamePasswordLoginServlet extends HttpServlet {
         String authValidationEndpoint = (String) session.getAttribute("drupalauth.authValidationEndpoint");
         String xforwardedHeader  = (String) session.getAttribute("drupalauth.xforwardedHeader");
         Boolean validateSessionIP  = (Boolean) session.getAttribute("drupalauth.validateSessionIP");
-        String username = "";
 
+		// Grab the requesting SP and pass it to the auth service to enable extended checks on user profile
+		// Snippet of code from Shibboleth.net
+		ServletContext application = null;
+		LoginContext loginContext = null;
+		EntityDescriptor entityDescriptor = null;
+		String entityID = null;
+		try {
+			application = this.getServletContext();
+			loginContext = HttpServletHelper.getLoginContext(HttpServletHelper.getStorageService(application),application, request);
+			entityDescriptor = HttpServletHelper.getRelyingPartyMetadata(loginContext.getRelyingPartyId(),HttpServletHelper.getRelyingPartyConfirmationManager(application));
+			// the entityID value is the unique SP entityID, it can be used to trigger customization
+			// of the login page
+			entityID = entityDescriptor.getEntityID();
+			log.info("DrupalAuth entityID found: " + entityID);
+
+		} catch (Exception e) {
+			log.error("Exception determining SP entityID");
+			if (application == null) {
+				log.error("application is null");
+			}
+			if (loginContext == null) {
+				log.error("loginContext is null");
+			}
+			if (entityDescriptor == null) {
+				log.error("entityDescriptor is null");
+			}
+		}
+	  
+		AuthValidatorResult result = null;
+        String username = "";
+		
         if (authCookieName != "" && authValidationEndpoint != "") {
           String token = DrupalAuthValidator.resolveCookie(request, authCookieName);
 
  
           if (token != "") {
             log.info("DrupalAuth Authentication found: " + token);
-            username = DrupalAuthValidator.validateSession(request, token, authValidationEndpoint, xforwardedHeader, validateSessionIP, log);
+            result = DrupalAuthValidator.validateSession(request, token, entityID, authValidationEndpoint, xforwardedHeader, validateSessionIP, log);
           } else {
             log.info("No DrupalAuth cookie found.");
           }
-
-          if (username != "") {
-            log.info("Drupal Authentication Successful, username: " + username);
-            request.setAttribute(LoginHandler.PRINCIPAL_NAME_KEY, username);
+		
+          if ( result != null && result.username != "") {
+            log.info("Drupal Authentication Successful, username: " + result.username);
+            request.setAttribute(LoginHandler.PRINCIPAL_NAME_KEY, result.username);
             Session idpSession = (Session) request.getAttribute(Session.HTTP_SESSION_BINDING_ATTRIBUTE);
             if (idpSession != null) {
               log.info("Session with principal exists: " + idpSession.getPrincipalName());

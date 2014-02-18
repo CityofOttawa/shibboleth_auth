@@ -74,8 +74,8 @@ public class DrupalAuthValidator {
         output = connection.getOutputStream();
         writer = new PrintWriter(new OutputStreamWriter(output), true);
         writer.append("{\"token\":\"" + token +"\",");
-	writer.append("\"entityID\":\"" +  entityID + "\"}"); 
-	writer.flush();
+		writer.append("\"entityID\":\"" +  entityID + "\"}"); 
+		writer.flush();
       } catch (Exception e) {
         log.warn("Tried to validate DrupalAuth token and got: " + e.getMessage());
         return new AuthValidatorResult();
@@ -150,11 +150,12 @@ public class DrupalAuthValidator {
         log.info(host + " didn't match " + httpRequest.getRemoteAddr() + " and " + xforwardedHeader + " contained " + clientip + ", authentication failed.");
       }
 
-      // Return whether authentication was successful
+	// Return whether authentication was successful
       if (authenticated) {
         return new AuthValidatorResult(authenticated , username);
       } else if( !authenticated && uri != null ) {
-	return new AuthValidatorResult(authenticated, uri);
+		log.info("Redirecting user to: " + uri);
+		return new AuthValidatorResult(authenticated, null, uri);
       } else {
         return new AuthValidatorResult(authenticated);
       }
