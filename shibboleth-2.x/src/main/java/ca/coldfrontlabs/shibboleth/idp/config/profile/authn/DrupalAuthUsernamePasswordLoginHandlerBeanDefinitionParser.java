@@ -19,7 +19,7 @@ public class DrupalAuthUsernamePasswordLoginHandlerBeanDefinitionParser extends
 
     /** Schema type. */
     public static final QName SCHEMA_TYPE = new QName(ProfileHandlerDrupalAuthHandler.NAMESPACE, "DrupalAuthUsernamePassword");
-    
+
     /** Class logger. */
     private final Logger log = LoggerFactory.getLogger(DrupalAuthUsernamePasswordLoginHandlerBeanDefinitionParser.class);
 
@@ -37,6 +37,7 @@ public class DrupalAuthUsernamePasswordLoginHandlerBeanDefinitionParser extends
         builder.addPropertyValue("authValidationEndpoint", DatatypeHelper.safeTrim(config.getAttributeNS(null,"authValidationEndpoint")));
         builder.addPropertyValue("xforwardedHeader", DatatypeHelper.safeTrim(config.getAttributeNS(null,"xforwardedHeader")));
         builder.addPropertyValue("validateSessionIP", DatatypeHelper.safeTrim(config.getAttributeNS(null,"validateSessionIP")));
+        builder.addPropertyValue("parseLangQueryParams", DatatypeHelper.safeTrim(config.getAttributeNS(null,"parseLangQueryParams")));
 
         String jaasConfigurationURL = DatatypeHelper.safeTrim(config.getAttributeNS(null, "jaasConfigurationLocation"));
         log.debug("Setting JAAS configuration file to: {}", jaasConfigurationURL);

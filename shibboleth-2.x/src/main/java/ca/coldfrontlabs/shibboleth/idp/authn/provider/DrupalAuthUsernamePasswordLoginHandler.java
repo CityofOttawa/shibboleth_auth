@@ -33,10 +33,10 @@ import edu.internet2.middleware.shibboleth.idp.authn.LoginContext;
 
 /**
  * Authenticate a username and password against a JAAS source.
- * 
+ *
  * This authenticaiton handler requires a JSP to collect a username and password from the user. It also requires a JAAS
  * configuration file to validate the username and password.
- * 
+ *
  * If an Authentication Context Class or DeclRef URI is not specified, it will default to
  * "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport".
  */
@@ -61,9 +61,12 @@ public class DrupalAuthUsernamePasswordLoginHandler extends AbstractLoginHandler
     /** Whether or not to validate the request ip and session ip */
     private boolean validateSessionIP;
 
+    /** Watch for these parameters in the auth request Referer header, and use them to infer a language for the authentication page */
+    private String parseLangQueryParams;
+
     /**
      * Constructor.
-     * 
+     *
      * @param servletURL URL to the authentication servlet
      */
     public DrupalAuthUsernamePasswordLoginHandler(String servletURL) {
@@ -117,6 +120,14 @@ public class DrupalAuthUsernamePasswordLoginHandler extends AbstractLoginHandler
         return validateSessionIP;
     }
 
+    public void setParseLangQueryParams(String parseLangQueryParams) {
+        this.parseLangQueryParams = parseLangQueryParams;
+    }
+
+    public String getParseLangQueryParams() {
+        return parseLangQueryParams;
+    }
+
     /** {@inheritDoc} */
     public void login(final HttpServletRequest httpRequest, final HttpServletResponse httpResponse) {
       HttpSession session = httpRequest.getSession();
@@ -124,6 +135,7 @@ public class DrupalAuthUsernamePasswordLoginHandler extends AbstractLoginHandler
       session.setAttribute("drupalauth.authValidationEndpoint", authValidationEndpoint);
       session.setAttribute("drupalauth.xforwardedHeader", xforwardedHeader);
       session.setAttribute("drupalauth.validateSessionIP", validateSessionIP);
+      session.setAttribute("drupalauth.parseLangQueryParams", parseLangQueryParams);
 
         // forward control to the servlet.
         try {

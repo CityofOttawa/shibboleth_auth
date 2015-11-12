@@ -23,9 +23,12 @@ public class DrupalAuthUsernamePasswordLoginHandlerFactoryBean extends AbstractL
     /** Whether or not to validate the request ip and session ip */
     private Boolean validateSessionIP;
 
+    /** Watch for these parameters in the auth request Referer header, and use them to infer a language for the authentication page */
+    private String parseLangQueryParams;
+
     /**
      * Gets the URL to authentication servlet.
-     * 
+     *
      * @return URL to authentication servlet
      */
     public String getAuthenticationServletURL() {
@@ -34,7 +37,7 @@ public class DrupalAuthUsernamePasswordLoginHandlerFactoryBean extends AbstractL
 
     /**
      * Sets URL to authentication servlet.
-     * 
+     *
      * @param url URL to authentication servlet
      */
     public void setAuthenticationServletURL(String url) {
@@ -74,6 +77,14 @@ public class DrupalAuthUsernamePasswordLoginHandlerFactoryBean extends AbstractL
         return validateSessionIP;
     }
 
+    public void setParseLangQueryParams(String parseLangQueryParams) {
+        this.parseLangQueryParams = parseLangQueryParams;
+    }
+
+    public String getParseLangQueryParams() {
+        return parseLangQueryParams;
+    }
+
     /** {@inheritDoc} */
     protected Object createInstance() throws Exception {
         DrupalAuthUsernamePasswordLoginHandler handler = new DrupalAuthUsernamePasswordLoginHandler(
@@ -82,6 +93,7 @@ public class DrupalAuthUsernamePasswordLoginHandlerFactoryBean extends AbstractL
         handler.setAuthValidationEndpoint(getAuthValidationEndpoint());
         handler.setXforwardedHeader(getXforwardedHeader());
         handler.setValidateSessionIP(getValidateSessionIP());
+        handler.setParseLangQueryParams(getParseLangQueryParams());
         populateHandler(handler);
 
         return handler;

@@ -104,6 +104,7 @@ public class DrupalAuthUsernamePasswordLoginServlet extends HttpServlet {
         String authValidationEndpoint = (String) session.getAttribute("drupalauth.authValidationEndpoint");
         String xforwardedHeader  = (String) session.getAttribute("drupalauth.xforwardedHeader");
         Boolean validateSessionIP  = (Boolean) session.getAttribute("drupalauth.validateSessionIP");
+        String parseLangQueryParams  = (String) session.getAttribute("drupalauth.parseLangQueryParams");
 
 		// Grab the requesting SP and pass it to the auth service to enable extended checks on user profile
 		// Snippet of code from Shibboleth.net
@@ -132,21 +133,21 @@ public class DrupalAuthUsernamePasswordLoginServlet extends HttpServlet {
 				log.error("entityDescriptor is null");
 			}
 		}
-	  
+
 		AuthValidatorResult result = null;
         String username = "";
-		
+
         if (authCookieName != "" && authValidationEndpoint != "") {
           String token = DrupalAuthValidator.resolveCookie(request, authCookieName);
 
- 
+
           if (token != "") {
             log.info("DrupalAuth Authentication found: " + token);
             result = DrupalAuthValidator.validateSession(request, token, entityID, authValidationEndpoint, xforwardedHeader, validateSessionIP, log);
           } else {
             log.info("No DrupalAuth cookie found.");
           }
-		
+
           if ( result != null && result.username != "") {
             log.info("Drupal Authentication Successful, username: " + result.username);
             request.setAttribute(LoginHandler.PRINCIPAL_NAME_KEY, result.username);
@@ -182,7 +183,7 @@ public class DrupalAuthUsernamePasswordLoginServlet extends HttpServlet {
 
     /**
      * Sends the user to the login page.
-     * 
+     *
      * @param request current request
      * @param response current response
      * @param queryParams query parameters to pass to the login page
@@ -204,7 +205,7 @@ public class DrupalAuthUsernamePasswordLoginServlet extends HttpServlet {
             if (queryParams == null) {
                 queryParams = new ArrayList<Pair<String, String>>();
             }
-            
+
             queryParams.add(new Pair<String, String>("actionUrl", request.getContextPath()
                     + request.getServletPath()));
             urlBuilder.getQueryParams().addAll(queryParams);
@@ -220,9 +221,9 @@ public class DrupalAuthUsernamePasswordLoginServlet extends HttpServlet {
     /**
      * Authenticate a username and password against JAAS. If authentication succeeds the name of the first principal, or
      * the username if that is empty, and the subject are placed into the request in their respective attributes.
-     * 
+     *
      * @param request current authentication request
-     * 
+     *
      * @return true of authentication succeeds, false if not
      */
     protected boolean authenticateUser(HttpServletRequest request) {
@@ -264,7 +265,7 @@ public class DrupalAuthUsernamePasswordLoginServlet extends HttpServlet {
 
     /**
      * A callback handler that provides static name and password data to a JAAS loging process.
-     * 
+     *
      * This handler only supports {@link NameCallback} and {@link PasswordCallback}.
      */
     protected class SimpleCallbackHandler implements CallbackHandler {
@@ -277,7 +278,7 @@ public class DrupalAuthUsernamePasswordLoginServlet extends HttpServlet {
 
         /**
          * Constructor.
-         * 
+         *
          * @param username The username
          * @param password The password
          */
@@ -288,9 +289,9 @@ public class DrupalAuthUsernamePasswordLoginServlet extends HttpServlet {
 
         /**
          * Handle a callback.
-         * 
+         *
          * @param callbacks The list of callbacks to process.
-         * 
+         *
          * @throws UnsupportedCallbackException If callbacks has a callback other than {@link NameCallback} or
          *             {@link PasswordCallback}.
          */

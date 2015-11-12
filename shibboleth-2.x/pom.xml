@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ca.coldfrontlabs</groupId>
     <artifactId>drupalauth</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
 
     <name>DrupalAuth</name>
-    
+
     <repositories>
         <repository>
             <id>shibboleth.internet2.edu</id>
@@ -38,7 +38,7 @@
             <version>2.4</version>
             <scope>provided</scope>
         </dependency>
-        
+
         <!-- Runtime dependencies -->
 
         <!-- Test dependencies -->
@@ -97,29 +97,29 @@
             </plugin>
         </plugins>
     </reporting>
-    
-    <!-- 
-        You can leave the following information commented out fill it in with information 
+
+    <!--
+        You can leave the following information commented out fill it in with information
         appropriate for your extension.
     -->
-    
+
     <!-- Project Metadata -->
 
     <url>http://coldfrontlabs.ca/</url>
-    
+
     <inceptionYear>2013</inceptionYear>
     <licenses>
     </licenses>
-    
+
     <organization>
         <name>Coldfront Labs Inc.</name>
         <url>http://coldfrontlabs.ca/</url>
     </organization>
-    
-    
+
+
     <mailingLists>
     </mailingLists>
-    
+
     <developers>
         <developer>
             <id>dpascoed</id>

@@ -107,7 +107,7 @@ Your shibboleth installation should now have the DrupalAuthLoginHandler running 
   a. At the beginning the xml file, update the ProfileHandlerGroup element to include the XML namespace of the DrupalAuth login handler.  It should look like this:
 
 <ph:ProfileHandlerGroup xmlns:ph="urn:mace:shibboleth:2.0:idp:profile-handler"
-                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                         xmlns:cfli="http://coldfrontlabs.ca/shibboleth/authn"
                         xsi:schemaLocation="urn:mace:shibboleth:2.0:idp:profile-handler classpath:/schema/shibboleth-2.0-idp-profile-handler.xsd
                                             http://coldfrontlabs.ca/shibboleth/authn classpath:/schema/drupalauth-profile-handler.xsd">
@@ -115,12 +115,13 @@ Your shibboleth installation should now have the DrupalAuthLoginHandler running 
   b. Remove (or comment out) all other login handlers (ph:UsernamePassword, ph:PreviousSession, ph:ExternalAuthn, and ph:RemoteUser.)
   c. In place of the login handler removed in the previous step, add the following:
 
-    <ph:LoginHandler xsi:type="cfli:DrupalAuth" 
+    <ph:LoginHandler xsi:type="cfli:DrupalAuth"
                   authCookieName = "drupalauth"
                   authValidationEndpoint = "http://drupal.example.com/auth/user/validate.xml"
                   drupalLoginURL = "http://drupal.example.com/shibboleth_continue"
                   xforwardedHeader = "X-Forwarded-For"
                   validateSessionIP = "true"
+                  parseLangQueryParams = "lang;language"
                   >
         <ph:AuthenticationMethod>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</ph:AuthenticationMethod>
     </ph:LoginHandler>
@@ -163,7 +164,7 @@ Your shibboleth installation should now have the DrupalAuthLoginHandler running 
   a. At the beginning the xml file, update the ProfileHandlerGroup element to include the XML namespace of the DrupalAuth login handler.  It should look like this:
 
 <ph:ProfileHandlerGroup xmlns:ph="urn:mace:shibboleth:2.0:idp:profile-handler"
-                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                         xmlns:cfli="http://coldfrontlabs.ca/shibboleth/authn"
                         xsi:schemaLocation="urn:mace:shibboleth:2.0:idp:profile-handler classpath:/schema/shibboleth-2.0-idp-profile-handler.xsd
                                             http://coldfrontlabs.ca/shibboleth/authn classpath:/schema/drupalauth-profile-handler.xsd">
@@ -171,12 +172,14 @@ Your shibboleth installation should now have the DrupalAuthLoginHandler running 
   b.  Remove (or comment out) all other login handlers (ph:UsernamePassword, ph:PreviousSession, ph:ExternalAuthn, and ph:RemoteUser.)
   c. In place of the login handler removed in the previous step, add the following:
 
-    <ph:LoginHandler xsi:type="cfli:DrupalAuthUsernamePassword" 
+    <ph:LoginHandler xsi:type="cfli:DrupalAuthUsernamePassword"
                   authCookieName = "drupalauth"
                   authValidationEndpoint = "http://drupal.example.com/auth/user/validate.xml"
                   xforwardedHeader = "X-Forwarded-For"
                   validateSessionIP = "true"
-                  jaasConfigurationLocation="file:///opt/shibboleth-idp/conf/login.config">
+                  jaasConfigurationLocation="file:///opt/shibboleth-idp/conf/login.config"
+                  parseLangQueryParams = "lang;language"
+                  >
         <ph:AuthenticationMethod>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</ph:AuthenticationMethod>
     </ph:LoginHandler>
 
@@ -186,4 +189,3 @@ Your shibboleth installation should now have the DrupalAuthLoginHandler running 
 5. Reload the IdP application.
 
 If everything is configured correctly, your Shibboleth instance should now authenticate using the Drupal site.
-

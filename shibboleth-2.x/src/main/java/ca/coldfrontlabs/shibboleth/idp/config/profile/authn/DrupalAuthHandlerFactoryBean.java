@@ -1,11 +1,11 @@
 package ca.coldfrontlabs.shibboleth.idp.config.profile.authn;
- 
+
 import ca.coldfrontlabs.shibboleth.idp.authn.provider.DrupalAuthLoginHandler;
 import edu.internet2.middleware.shibboleth.idp.config.profile.authn.AbstractLoginHandlerFactoryBean;
 /**
  * Factory bean for {@link DrupalAuthLoginHandler}s.
  */
- 
+
 public class DrupalAuthHandlerFactoryBean extends AbstractLoginHandlerFactoryBean{
 
     /** The URL of the login servlet. */
@@ -25,7 +25,10 @@ public class DrupalAuthHandlerFactoryBean extends AbstractLoginHandlerFactoryBea
 
     /** Whether or not to validate the request ip and session ip */
     private Boolean validateSessionIP;
- 
+
+    /** Watch for these parameters in the auth request Referer header, and use them to infer a language for the authentication page */
+    private String parseLangQueryParams;
+
     public String getAuthCookieName() {
         return authCookieName;
     }
@@ -73,7 +76,15 @@ public class DrupalAuthHandlerFactoryBean extends AbstractLoginHandlerFactoryBea
     public Boolean getValidateSessionIP() {
         return validateSessionIP;
     }
- 
+
+    public void setParseLangQueryParams(String parseLangQueryParams) {
+        this.parseLangQueryParams = parseLangQueryParams;
+    }
+
+    public String getParseLangQueryParams() {
+        return parseLangQueryParams;
+    }
+
     /** {@inheritDoc} */
     protected Object createInstance() throws Exception {
         DrupalAuthLoginHandler handler = new DrupalAuthLoginHandler(authenticationServletURL);
@@ -82,10 +93,11 @@ public class DrupalAuthHandlerFactoryBean extends AbstractLoginHandlerFactoryBea
         handler.setDrupalLoginURL(getDrupalLoginURL());
         handler.setXforwardedHeader(getXforwardedHeader());
         handler.setValidateSessionIP(getValidateSessionIP());
+        handler.setParseLangQueryParams(getParseLangQueryParams());
         populateHandler(handler);
         return handler;
     }
- 
+
     @Override
     public Class getObjectType() {
         return DrupalAuthLoginHandler.class;

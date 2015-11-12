@@ -1,8 +1,8 @@
 package ca.coldfrontlabs.shibboleth.idp.authn.provider;
- 
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Cookie; 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpSession;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
- 
+
 import edu.internet2.middleware.shibboleth.idp.authn.provider.AbstractLoginHandler;
 import edu.internet2.middleware.shibboleth.idp.authn.AuthenticationEngine;
 import edu.internet2.middleware.shibboleth.idp.authn.LoginHandler;
@@ -35,10 +35,10 @@ import edu.internet2.middleware.shibboleth.idp.authn.LoginContext;
  *  This rest service returns the username and host ip of the user with the session, if the token is valid.
  */
 public class DrupalAuthLoginHandler extends AbstractLoginHandler {
- 
+
      /** Class logger. */
     private final Logger log = LoggerFactory.getLogger(DrupalAuthLoginHandler.class);
- 
+
     /** The URL of the login servlet. */
     private String authenticationServletURL;
 
@@ -56,7 +56,10 @@ public class DrupalAuthLoginHandler extends AbstractLoginHandler {
 
     /** Whether or not to validate the request ip and session ip */
     private Boolean validateSessionIP;
- 
+
+    /** Watch for these parameters in the auth request Referer header, and use them to infer a language for the authentication page */
+    private String parseLangQueryParams;
+
     /** Constructor. */
     public DrupalAuthLoginHandler(String servletURL) {
         super();
@@ -128,7 +131,14 @@ public class DrupalAuthLoginHandler extends AbstractLoginHandler {
         return validateSessionIP;
     }
 
- 
+    public void setParseLangQueryParams(String parseLangQueryParams) {
+        this.parseLangQueryParams = parseLangQueryParams;
+    }
+
+    public String getParseLangQueryParams() {
+        return parseLangQueryParams;
+    }
+
     /** {@inheritDoc} */
     public void login(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
       log.info("Starting DrupalAuth authentication");
@@ -138,6 +148,7 @@ public class DrupalAuthLoginHandler extends AbstractLoginHandler {
       session.setAttribute("drupalauth.drupalLoginURL", drupalLoginURL);
       session.setAttribute("drupalauth.xforwardedHeader", xforwardedHeader);
       session.setAttribute("drupalauth.validateSessionIP", validateSessionIP);
+      session.setAttribute("drupalauth.parseLangQueryParams", parseLangQueryParams);
 
         // forward control to the servlet.
         try {
