@@ -8,8 +8,8 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Cookie;
 
 import java.io.IOException;
 import java.net.URL;
@@ -46,6 +46,13 @@ public class DrupalAuthServlet extends HttpServlet {
       String xforwardedHeader  = (String) session.getAttribute("drupalauth.xforwardedHeader");
       Boolean validateSessionIP  = (Boolean) session.getAttribute("drupalauth.validateSessionIP");
       String parseLangQueryParams  = (String) session.getAttribute("drupalauth.parseLangQueryParams");
+
+      authCookieName = authCookieName == null ? "" : authCookieName;
+      authValidationEndpoint = authValidationEndpoint == null ? "" : authValidationEndpoint;
+      drupalLoginURL = drupalLoginURL == null ? "" : drupalLoginURL;
+      xforwardedHeader = xforwardedHeader == null ? "" : xforwardedHeader;
+      validateSessionIP = validateSessionIP == null ? false : validateSessionIP;
+      parseLangQueryParams = parseLangQueryParams == null ? "" : parseLangQueryParams;
 
       if (authCookieName == "" || authValidationEndpoint == "") {
         log.error("Missing critical settings");
@@ -101,18 +108,16 @@ public class DrupalAuthServlet extends HttpServlet {
         if( results != null && results.URI != "" )
           drupalLoginURL = results.URI;
 
-        // Append a lang string if we have one
-        if (!parseLangQueryParams.isEmpty())
+        // If we can infere a prefered language from the client request, append
+        // a lang param to the login/redirect page
+        String preferredLang = GetPreferredLanguage(httpRequest, parseLangQueryParams);
+        if (preferredLang != null)
         {
-          String inferredLang = InferLang(httpRequest, parseLangQueryParams);
-          if (inferredLang != null)
-          {
-            log.debug("Inferred language is " + inferredLang);
-            if (!drupalLoginURL.contains("?"))
-              drupalLoginURL = drupalLoginURL + "?lang=" + inferredLang;
-            else
-              drupalLoginURL = drupalLoginURL + "&lang=" + inferredLang;
-          }
+          String langParam = "lang=" + preferredLang;
+          String queryStringAppendChar = "?";
+          if (drupalLoginURL.contains("?"))
+            queryStringAppendChar = "&"; // add to existing params instead
+          drupalLoginURL += queryStringAppendChar + langParam;
         }
 
         log.debug("Redirecting to Drupal login page {}", drupalLoginURL);
@@ -121,14 +126,64 @@ public class DrupalAuthServlet extends HttpServlet {
       return;
     }
 
-    protected String InferLang(HttpServletRequest httpRequest, String parseLangQueryParams)
+    // Examines the user's request and tries to guess what language they prefer
+    // Returns one of: null, "en", "fr"
+    protected String GetPreferredLanguage(HttpServletRequest httpRequest, String parseLangQueryParams)
+    {
+      String preferredLang = null;
+
+      // Attempt to detect a lang parameter in the referral URL
+      preferredLang = InferLangFromReferralUrl(httpRequest, parseLangQueryParams);
+
+      // If the cookie failed, retrieve the user's language preference from a shared cookie
+      if (preferredLang == null)
+        preferredLang = InferLangFromCookie(httpRequest);
+
+      // If some kind of language string was found, coerce it into one of the
+      // permitted values
+      if (preferredLang != null)
+      {
+        preferredLang = preferredLang.trim().toLowerCase();
+        if (!preferredLang.equals("fr"))
+          preferredLang = "en";
+      }
+
+      log.debug("Preferred language is " + preferredLang == null ? "NULL" : preferredLang);
+      return preferredLang;
+    }
+
+    protected String InferLangFromCookie(HttpServletRequest httpRequest)
+    {
+      // Try to locate a cookie that states the user's language preference.
+      // Calling applications should use this name when setting the cookie.
+      // Cookie name: "language-preference"
+      // Permissible values: "fr" or "en"
+      try
+      {
+        for (Cookie cookie : httpRequest.getCookies())
+          if (cookie.getName().equals("language-preference"))
+          {
+            String lang = cookie.getValue();
+            log.debug("Found language preference in cookie: " + lang);
+            return lang;
+          }
+      }
+      catch (Exception ex)
+      {
+        log.error("Unable to infer a lang parameter from cookie: " + ex.getMessage());
+      }
+
+      return null;
+    }
+
+    protected String InferLangFromReferralUrl(HttpServletRequest httpRequest, String parseLangQueryParams)
     {
       // Examine the referer header that came with this request to see if we can infer the user's language.
       // If we find a query string paramater that matches the list provided, return the content of that param.
       try
       {
         String referrer = httpRequest.getHeader("referer");
-        if (referrer != null)
+        if (referrer != null && !parseLangQueryParams.isEmpty())
         {
           // These are the params we will look for
           String[] langParams = parseLangQueryParams.split(";");
@@ -144,13 +199,17 @@ public class DrupalAuthServlet extends HttpServlet {
               // If we find a matching lang param, return its value
               for (int i = 0; i < langParams.length; i++)
                 if (paramName.equalsIgnoreCase(langParams[i]))
-                  return URLDecoder.decode(param.substring(splitPos + 1), "UTF-8");
+                {
+                  String lang = URLDecoder.decode(param.substring(splitPos + 1), "UTF-8");
+                  log.debug("Found language preference in referral URL: " + lang);
+                  return lang;
+                }
           }
         }
       }
       catch (Exception ex)
       {
-        log.error("Unable to infer a lang parameter: " + ex.getMessage());
+        log.error("Unable to infer a lang parameter from referral URL: " + ex.getMessage());
       }
 
       return null;

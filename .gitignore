@@ -4,3 +4,7 @@
 *.jar
 *.war
 *.ear
+
+# Build dirs
+shibboleth-2.x/target/maven-status/
+shibboleth-2.x/target/drupalauth-*/

@@ -74,8 +74,8 @@ public class DrupalAuthValidator {
         output = connection.getOutputStream();
         writer = new PrintWriter(new OutputStreamWriter(output), true);
         writer.append("{\"token\":\"" + token +"\",");
-		writer.append("\"entityID\":\"" +  entityID + "\"}"); 
-		writer.flush();
+        writer.append("\"entityID\":\"" +  entityID + "\"}");
+        writer.flush();
       } catch (Exception e) {
         log.warn("Tried to validate DrupalAuth token and got: " + e.getMessage());
         return new AuthValidatorResult();
@@ -99,6 +99,8 @@ public class DrupalAuthValidator {
       try {
         reader = new SAXReader();
         doc = reader.read(connection.getInputStream());
+        log.debug("Got auth response");
+        log.debug(doc.asXML());
       } catch (Exception e) {
         log.warn("Try to parse DrupalAuth return XML and got: " + e.getMessage());
         return new AuthValidatorResult();
